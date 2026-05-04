@@ -1,0 +1,61 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build (unsigned)
+        run: |
+          xcodebuild \
+            -project FocusZone.xcodeproj \
+            -scheme FocusZone \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Package DMG
+        run: |
+          APP_PATH="build/Build/Products/Release/FocusZone.app"
+          DMG_NAME="FocusZone-${{ github.ref_name }}.dmg"
+
+          mkdir -p dmg-staging
+          cp -r "$APP_PATH" dmg-staging/
+          ln -s /Applications dmg-staging/Applications
+
+          hdiutil create \
+            -volname "Focus Zone" \
+            -srcfolder dmg-staging \
+            -ov -format UDZO \
+            -o "$DMG_NAME"
+
+          echo "DMG_NAME=$DMG_NAME" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Focus Zone ${{ github.ref_name }}
+          files: ${{ env.DMG_NAME }}
+          body: |
+            ## Download
+
+            1. Download **FocusZone-${{ github.ref_name }}.dmg** below
+            2. Open it and drag **Focus Zone** to your Applications folder
+            3. Launch — if macOS blocks it, go to **System Settings → Privacy & Security → Open Anyway**
+
+            ## Shortcuts
+
+            | Action | Shortcut |
+            |--------|----------|
+            | Select focus region | `⌘⇧S` |
+            | Toggle dim on/off | `⌘⇧D` |
