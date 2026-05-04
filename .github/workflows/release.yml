@@ -5,13 +5,16 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: macos-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Build (unsigned)
         run: |
@@ -42,7 +45,7 @@ jobs:
           echo "DMG_NAME=$DMG_NAME" >> $GITHUB_ENV
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.3.2
         with:
           name: Focus Zone ${{ github.ref_name }}
           files: ${{ env.DMG_NAME }}
