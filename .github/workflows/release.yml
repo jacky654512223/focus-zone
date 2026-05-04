@@ -16,13 +16,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Build (unsigned)
+      - name: Build universal binary (Intel + Apple Silicon)
         run: |
           xcodebuild \
             -project FocusZone.xcodeproj \
             -scheme FocusZone \
             -configuration Release \
             -derivedDataPath build \
+            ARCHS="x86_64 arm64" \
+            ONLY_ACTIVE_ARCH=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
