@@ -60,15 +60,21 @@ final class SelectionOverlayView: NSView {
     // MARK: - Drawing
 
     override func draw(_ dirtyRect: NSRect) {
-        guard let ctx = NSGraphicsContext.current?.cgContext else { return }
-
-        // Dark background — slightly lighter than the main dim so users can see content
-        NSColor.black.withAlphaComponent(0.55).setFill()
-        NSBezierPath.fill(bounds)
+        let dimColor = NSColor.black.withAlphaComponent(0.55)
 
         if isDrawing && selectionRect.width > 2 && selectionRect.height > 2 {
-            // Punch a transparent hole for the selection area
-            ctx.clear(selectionRect)
+            // Draw the dark overlay as four rectangles around the selection,
+            // leaving the selection rectangle itself completely clear.
+            // This avoids CGContext.clear() which requires a layer-backed view.
+            dimColor.setFill()
+            NSBezierPath.fill(NSRect(x: bounds.minX,        y: selectionRect.maxY,
+                                     width: bounds.width,    height: bounds.maxY - selectionRect.maxY))
+            NSBezierPath.fill(NSRect(x: bounds.minX,        y: bounds.minY,
+                                     width: bounds.width,    height: selectionRect.minY - bounds.minY))
+            NSBezierPath.fill(NSRect(x: bounds.minX,        y: selectionRect.minY,
+                                     width: selectionRect.minX - bounds.minX, height: selectionRect.height))
+            NSBezierPath.fill(NSRect(x: selectionRect.maxX, y: selectionRect.minY,
+                                     width: bounds.maxX - selectionRect.maxX, height: selectionRect.height))
 
             // Dashed white border around the selection
             let border = NSBezierPath(rect: selectionRect.insetBy(dx: 1, dy: 1))
@@ -77,12 +83,11 @@ final class SelectionOverlayView: NSView {
             NSColor.white.withAlphaComponent(0.9).setStroke()
             border.stroke()
 
-            // Size label below the selection rectangle
             drawSizeLabel(for: selectionRect)
-        }
-
-        // Instruction hint when not drawing
-        if !isDrawing {
+        } else {
+            // Full-screen dim while waiting for the user to start dragging
+            dimColor.setFill()
+            NSBezierPath.fill(bounds)
             drawHint()
         }
     }
