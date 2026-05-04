@@ -18,7 +18,7 @@ You draw a rectangle on your screen — everything outside it gets dimmed. The f
 
 ## Requirements
 
-- macOS 13.0 (Ventura) or later
+- macOS 13 (Ventura) or later
 - Apple Silicon or Intel Mac
 
 ## Usage
